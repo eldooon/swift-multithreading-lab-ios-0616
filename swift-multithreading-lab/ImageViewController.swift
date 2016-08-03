@@ -15,15 +15,31 @@ class ImageViewController : UIViewController, UIScrollViewDelegate {
     var scrollView: UIScrollView!
     var imageView: UIImageView!
     var activityIndicator: UIActivityIndicatorView!
+    var antiqueButton : UIActivityIndicatorView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
+        activityIndicator = UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
+        activityIndicator.color = UIColor.cyanColor()
+        activityIndicator.center = view.center
+        view.addSubview(activityIndicator)
+        
     }
     
     @IBAction func antiqueButtonTapped(sender: AnyObject) {
-        filterImage { (result) in
-            result ? print("Image filtering complete") : print("Image filtering did not complete")
+        
+        let block = NSOperationQueue()
+        block.qualityOfService = .UserInitiated
+        
+        self.activityIndicator.startAnimating()
+        
+        block.addOperationWithBlock {
+        
+            self.filterImage { (result) in
+                
+                result ? print("Completed") : print("Image filtering did not complete")
+            }
         }
     }
     
@@ -59,9 +75,14 @@ class ImageViewController : UIViewController, UIScrollViewDelegate {
                 let finalResult = UIGraphicsGetImageFromCurrentImageContext()
                 UIGraphicsEndImageContext()
                 
-                print("Setting final result")
-                self.imageView?.image = finalResult
-                completion(true)
+                NSOperationQueue.mainQueue().addOperationWithBlock({
+                    print("Setting final result")
+                    self.imageView?.image = finalResult
+                    completion(true)
+                    self.activityIndicator.stopAnimating()
+                })
+                
+                
             }
         }
     }
